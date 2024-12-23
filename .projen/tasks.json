@@ -176,18 +176,6 @@
         },
         {
           "spawn": "package:python"
-        },
-        {
-          "spawn": "package:dotnet"
-        }
-      ]
-    },
-    "package:dotnet": {
-      "name": "package:dotnet",
-      "description": "Create dotnet language bindings",
-      "steps": [
-        {
-          "exec": "jsii-pacmak -v --target dotnet"
         }
       ]
     },
@@ -231,7 +219,7 @@
       "description": "Prepare a release from \"main\" branch",
       "env": {
         "RELEASE": "true",
-        "MAJOR": "1"
+        "MAJOR": "2"
       },
       "steps": [
         {

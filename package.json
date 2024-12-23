@@ -1,9 +1,9 @@
 {
-  "name": "@gammarers/aws-waf-ip-restriction-rule-group",
-  "description": "This is an AWS CDK Construct for IP Restriction Rule Group on WAF V2",
+  "name": "@gammarers/aws-waf-ip-restrict-rule",
+  "description": "This is an AWS CDK Construct for IP Restriction Rule on WAF V2",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gammarers/aws-waf-ip-restriction-rule-group.git"
+    "url": "https://github.com/gammarers/aws-waf-ip-restrict-rule.git"
   },
   "scripts": {
     "build": "npx projen build",
@@ -17,7 +17,6 @@
     "eslint": "npx projen eslint",
     "package": "npx projen package",
     "package-all": "npx projen package-all",
-    "package:dotnet": "npx projen package:dotnet",
     "package:js": "npx projen package:js",
     "package:python": "npx projen package:python",
     "post-compile": "npx projen post-compile",
@@ -127,12 +126,8 @@
     "outdir": "dist",
     "targets": {
       "python": {
-        "distName": "gammarers.aws-waf-ip-restriction-rule-group",
-        "module": "gammarers.aws_waf_ip_restriction_rule_group"
-      },
-      "dotnet": {
-        "namespace": "Gammarers.CDK.AWS",
-        "packageId": "Gammarers.CDK.AWS.WafIpRestrictionRuleGroup"
+        "distName": "gammarers.aws-waf-ip-restrict-rule",
+        "module": "gammarers.aws_waf_ip_restrict_rule"
       }
     },
     "tsc": {
