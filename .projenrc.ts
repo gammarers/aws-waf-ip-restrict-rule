@@ -6,11 +6,11 @@ const project = new awscdk.AwsCdkConstructLibrary({
   typescriptVersion: '5.4.x',
   jsiiVersion: '5.4.x',
   defaultReleaseBranch: 'main',
-  name: '@gammarers/aws-waf-ip-restriction-rule',
+  name: '@gammarers/aws-waf-ip-restrict-rule',
   description: 'This is an AWS CDK Construct for IP Restriction Rule on WAF V2',
   majorVersion: 1,
   projenrcTs: true,
-  repositoryUrl: 'https://github.com/gammarers/aws-waf-ip-restriction-rule.git',
+  repositoryUrl: 'https://github.com/gammarers/aws-waf-ip-restrict-rule.git',
   npmAccess: javascript.NpmAccess.PUBLIC,
   minNodeVersion: '16.0.0',
   workflowNodeVersion: '22.4.x',
@@ -25,12 +25,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
     allowedUsernames: ['yicr'],
   },
   publishToPypi: {
-    distName: 'gammarers.aws-waf-ip-restriction-rule',
-    module: 'gammarers.aws_waf_ip_restriction_rule',
-  },
-  publishToNuget: {
-    dotNetNamespace: 'Gammarers.CDK.AWS',
-    packageId: 'Gammarers.CDK.AWS.WafIpRestrictionRule',
+    distName: 'gammarers.aws-waf-ip-restrict-rule',
+    module: 'gammarers.aws_waf_ip_restrict_rule',
   },
 });
 project.synth();
