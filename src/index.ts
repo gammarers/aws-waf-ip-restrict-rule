@@ -1,89 +1,55 @@
-import * as waf from 'aws-cdk-lib/aws-wafv2';
+import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
 import { Construct } from 'constructs';
 
-export interface WafIpRestrictRuleGroupProps {
-  readonly name?: string;
-  readonly scope: Scope;
-  readonly allowIpSetArn: string;
-  //readonly rateLimitCount?: number;
-  //whitelist
-}
-
-export enum Scope {
+export enum WAFIPRestrictRuleScope {
   GLOBAL = 'Global',
   REGIONAL = 'Regional',
 }
 
-export class WafIpRestrictRuleGroup extends waf.CfnRuleGroup {
-  constructor(scope: Construct, id: string, props: WafIpRestrictRuleGroupProps) {
-    super(scope, id, {
-      name: props.name,
-      description: 'ip restrict rule group',
+interface WAFIPRestrictRuleProps {
+  allowIpSetName?: string;
+  allowIpAddresses: string[];
+  scope: WAFIPRestrictRuleScope;
+  priority: number;
+  ruleName?: string;
+  cloudWatchMetricsName?: string;
+}
+
+export class WAFIPRestrictRule extends Construct {
+
+  public readonly rule: wafv2.CfnWebACL.RuleProperty;
+
+  constructor(scope: Construct, id: string, props: WAFIPRestrictRuleProps) {
+    super(scope, id);
+    // IPSet を作成
+    const ipSet = new wafv2.CfnIPSet(this, 'IPSet', {
+      addresses: props.allowIpAddresses,
+      ipAddressVersion: 'IPV4',
       scope: ((): string => {
         switch (props.scope) {
-          case Scope.GLOBAL:
+          case WAFIPRestrictRuleScope.GLOBAL:
             return 'CLOUDFRONT';
-          case Scope.REGIONAL:
+          case WAFIPRestrictRuleScope.REGIONAL:
             return 'REGIONAL';
         }
       })(),
-      capacity: 10,
-      rules: [
-        {
-          priority: 0,
-          name: 'allow-ip-rule',
-          action: {
-            allow: {},
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            sampledRequestsEnabled: true,
-            metricName: 'AllowIpRule',
-          },
-          statement: {
-            ipSetReferenceStatement: {
-              arn: props.allowIpSetArn,
-            },
-          },
-        },
-        {
-          priority: 1,
-          name: 'deny-ip-rule',
-          action: {
-            block: {
-              CustomResponse: {
-                CustomResponseBodyKey: 'ip-restrict',
-                ResponseCode: 403,
-              },
-            },
-          },
-          visibilityConfig: {
-            cloudWatchMetricsEnabled: true,
-            sampledRequestsEnabled: true,
-            metricName: 'DenyIpRule',
-          },
-          statement: {
-            notStatement: {
-              statement: {
-                ipSetReferenceStatement: {
-                  arn: props.allowIpSetArn,
-                },
-              },
-            },
-          },
-        },
-      ],
-      customResponseBodies: {
-        ['ip-restrict']: {
-          contentType: 'TEXT_PLAIN',
-          content: 'Sorry, You Are Not Allowed to Access This Service.',
-        },
-      },
+      name: props.allowIpSetName || 'allow-ip-set',
+    });
+
+    this.rule = {
+      name: props.ruleName || 'block-ip-rule',
+      priority: props.priority,
+      action: { block: {} },
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
+        metricName: props.cloudWatchMetricsName || 'BlockIPMetric',
         sampledRequestsEnabled: true,
-        metricName: 'IpRestrictRule',
       },
-    });
+      statement: {
+        ipSetReferenceStatement: {
+          arn: ipSet.attrArn,
+        },
+      },
+    };
   }
 }
