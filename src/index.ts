@@ -6,13 +6,13 @@ export enum WAFIPRestrictRuleScope {
   REGIONAL = 'Regional',
 }
 
-interface WAFIPRestrictRuleProps {
-  allowIpSetName?: string;
-  allowIpAddresses: string[];
-  scope: WAFIPRestrictRuleScope;
-  priority: number;
-  ruleName?: string;
-  cloudWatchMetricsName?: string;
+export interface WAFIPRestrictRuleProps {
+  readonly allowIpSetName?: string;
+  readonly allowIpAddresses: string[];
+  readonly scope: WAFIPRestrictRuleScope;
+  readonly priority: number;
+  readonly ruleName?: string;
+  readonly cloudWatchMetricsName?: string;
 }
 
 export class WAFIPRestrictRule extends Construct {
