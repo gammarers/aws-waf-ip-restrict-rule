@@ -1,4 +1,4 @@
-# AWS WAF(V2) IP Restrict Rule Group
+# AWS WAF(V2) IP Restrict Rule
 
 [![GitHub](https://img.shields.io/github/license/gammarers/aws-waf-ip-restrict-rule?style=flat-square)](https://github.com/gammarers/aws-waf-ip-restrict-rule/blob/main/LICENSE)
 [![npm (scoped)](https://img.shields.io/npm/v/@gammarers/aws-waf-ip-restrict-rule?style=flat-square)](https://www.npmjs.com/package/@gammarers/aws-waf-ip-restrict-rule)
@@ -8,7 +8,7 @@
 
 [![View on Construct Hub](https://constructs.dev/badge?package=@gammarers/aws-waf-ip-restrict-rule)](https://constructs.dev/packages/@gammarers/aws-waf-ip-restrict-rule)
 
-This is an AWS CDK Construct for IP Restriction Rule Group on WAF V2
+This is an AWS CDK Construct for IP Restrict Rule on WAF V2
 
 ## Install
 
