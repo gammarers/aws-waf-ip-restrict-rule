@@ -1,21 +1,25 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
-import { WAFIPRestrictRuleScope, WAFIPRestrictRule } from '../src';
+import { WAFIPRestrictRule } from '../src';
 
 describe('Web ACL Rule Global Cope testing', () => {
 
   const app = new App();
   const stack = new Stack(app, 'TestingStack');
 
-  const ipRestrictRule = new WAFIPRestrictRule(stack, 'WAFIPRestrictRule', {
-    allowIpAddresses: [
-      '192.0.2.0/24',
-      '198.51.100.0/24',
+  const allowedIpSet = new wafv2.CfnIPSet(stack, 'AllowedIpSet', {
+    addresses: [
       '203.0.113.0/24',
+      '198.51.100.0/24',
     ],
-    scope: WAFIPRestrictRuleScope.GLOBAL,
-    priority: 1,
+    ipAddressVersion: 'IPV4',
+    scope: 'REGIONAL',
+    name: 'AllowedIpSet',
+  });
+
+  const ipRestrictRule = new WAFIPRestrictRule({
+    allowIPSetArn: allowedIpSet.attrArn,
   });
 
   new wafv2.CfnWebACL(stack, 'WebACL', {
@@ -27,20 +31,10 @@ describe('Web ACL Rule Global Cope testing', () => {
       metricName: 'WebAclMetric',
       sampledRequestsEnabled: true,
     },
-    rules: [ipRestrictRule.rule],
-  });
-
-  it('Should have WAF IPSet', async () => {
-    template.hasResourceProperties('AWS::WAFv2::IPSet', {
-      Addresses: [
-        '192.0.2.0/24',
-        '198.51.100.0/24',
-        '203.0.113.0/24',
-      ],
-      IPAddressVersion: 'IPV4',
-      Name: 'allow-ip-set',
-      Scope: 'CLOUDFRONT',
-    });
+    rules: [
+      ipRestrictRule.allowRule({ priority: 1 }),
+      ipRestrictRule.blockRule({ priority: 2 }),
+    ],
   });
 
   it('Should have WAF WebACL Rule', async () => {
@@ -48,15 +42,15 @@ describe('Web ACL Rule Global Cope testing', () => {
       Rules: [
         {
           Action: {
-            Block: {},
+            Allow: {},
           },
-          Name: 'block-ip-rule',
+          Name: 'allow-ip-rule',
           Priority: 1,
           Statement: {
             IPSetReferenceStatement: {
               Arn: {
                 'Fn::GetAtt': [
-                  Match.stringLikeRegexp('WAFIPRestrictRule'),
+                  Match.stringLikeRegexp('AllowedIpSet'),
                   'Arn',
                 ],
               },
@@ -64,7 +58,33 @@ describe('Web ACL Rule Global Cope testing', () => {
           },
           VisibilityConfig: {
             CloudWatchMetricsEnabled: true,
-            MetricName: 'BlockIPMetric',
+            MetricName: 'AllowIPMetric',
+            SampledRequestsEnabled: true,
+          },
+        },
+        {
+          Action: {
+            Block: {},
+          },
+          Name: 'block-other-ip-rule',
+          Priority: 2,
+          Statement: {
+            NotStatement: {
+              Statement: {
+                IPSetReferenceStatement: {
+                  Arn: {
+                    'Fn::GetAtt': [
+                      Match.stringLikeRegexp('AllowedIpSet'),
+                      'Arn',
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          VisibilityConfig: {
+            CloudWatchMetricsEnabled: true,
+            MetricName: 'BlockOtherIpMetric',
             SampledRequestsEnabled: true,
           },
         },
