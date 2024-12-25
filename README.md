@@ -37,26 +37,33 @@ pip install gammarers.aws-waf-ip-restrict-rule
 ```typescript
 import { WAFIPRestrictRule } from '@gammarers/aws-waf-ip-restrict-rule';
 
-const ipRestrictRule = new WAFIPRestrictRule(stack, 'WAFIPRestrictRule', {
-  allowIpAddresses: [
-    '192.0.2.0/24',
-    '198.51.100.0/24',
+const allowedIpSet = new wafv2.CfnIPSet(stack, 'AllowedIpSet', {
+  addresses: [
     '203.0.113.0/24',
+    '198.51.100.0/24',
   ],
-  scope: WAFIPRestrictRuleScope.GLOBAL,
-  priority: 1,
+  ipAddressVersion: 'IPV4',
+  scope: 'CLOUDFRONT',
+  name: 'AllowedIpSet',
+});
+
+const ipRestrictRule = new WAFIPRestrictRule({
+  allowIPSetArn: allowedIpSet.attrArn,
 });
 
 new wafv2.CfnWebACL(stack, 'WebACL', {
   defaultAction: { allow: {} },
-  scope: 'CLOUD_FRONT',
+  scope: 'CLOUDFRONT',
   name: 'WebAclWithCustomRules',
   visibilityConfig: {
     cloudWatchMetricsEnabled: true,
     metricName: 'WebAclMetric',
     sampledRequestsEnabled: true,
   },
-  rules: [ipRestrictRule.rule],
+  rules: [
+    ipRestrictRule.allowRule({ priority: 1 }),
+    ipRestrictRule.blockRule({ priority: 2 }),
+  ],
 });
 
 ```

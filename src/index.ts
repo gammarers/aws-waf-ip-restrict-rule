@@ -1,53 +1,55 @@
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
-import { Construct } from 'constructs';
 
-export enum WAFIPRestrictRuleScope {
-  GLOBAL = 'Global',
-  REGIONAL = 'Regional',
-}
-
-export interface WAFIPRestrictRuleProps {
-  readonly allowIpSetName?: string;
-  readonly allowIpAddresses: string[];
-  readonly scope: WAFIPRestrictRuleScope;
+export interface RuleConfig {
   readonly priority: number;
   readonly ruleName?: string;
   readonly cloudWatchMetricsName?: string;
 }
 
-export class WAFIPRestrictRule extends Construct {
+export interface WAFIPRestrictRuleProps {
+  readonly allowIPSetArn: string;
+}
 
-  public readonly rule: wafv2.CfnWebACL.RuleProperty;
+export class WAFIPRestrictRule {
 
-  constructor(scope: Construct, id: string, props: WAFIPRestrictRuleProps) {
-    super(scope, id);
-    // IPSet を作成
-    const ipSet = new wafv2.CfnIPSet(this, 'IPSet', {
-      addresses: props.allowIpAddresses,
-      ipAddressVersion: 'IPV4',
-      scope: ((): string => {
-        switch (props.scope) {
-          case WAFIPRestrictRuleScope.GLOBAL:
-            return 'CLOUDFRONT';
-          case WAFIPRestrictRuleScope.REGIONAL:
-            return 'REGIONAL';
-        }
-      })(),
-      name: props.allowIpSetName || 'allow-ip-set',
-    });
+  constructor(private props: WAFIPRestrictRuleProps) {
+  }
 
-    this.rule = {
-      name: props.ruleName || 'block-ip-rule',
-      priority: props.priority,
-      action: { block: {} },
+  allowRule(config: RuleConfig): wafv2.CfnWebACL.RuleProperty {
+    return {
+      name: config.ruleName || 'allow-ip-rule',
+      priority: config.priority,
+      action: { allow: {} },
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
-        metricName: props.cloudWatchMetricsName || 'BlockIPMetric',
+        metricName: config.cloudWatchMetricsName || 'AllowIPMetric',
         sampledRequestsEnabled: true,
       },
       statement: {
         ipSetReferenceStatement: {
-          arn: ipSet.attrArn,
+          arn: this.props.allowIPSetArn,
+        },
+      },
+    };
+  }
+
+  blockRule(config: RuleConfig): wafv2.CfnWebACL.RuleProperty {
+    return {
+      name: config.ruleName || 'block-other-ip-rule',
+      priority: 2,
+      action: { block: {} }, // 拒否アクション
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: config.cloudWatchMetricsName || 'BlockOtherIpMetric',
+        sampledRequestsEnabled: true,
+      },
+      statement: {
+        notStatement: {
+          statement: {
+            ipSetReferenceStatement: {
+              arn: this.props.allowIPSetArn,
+            },
+          },
         },
       },
     };
