@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Web ACL Rule Regional scope testing Should match snapshot 1`] = `
+exports[`Web ACL Rule Global Cope testing Should match snapshot 1`] = `
 {
   "Parameters": {
     "BootstrapVersion": {
@@ -10,15 +10,14 @@ exports[`Web ACL Rule Regional scope testing Should match snapshot 1`] = `
     },
   },
   "Resources": {
-    "WAFIPRestrictRuleIPSet53B3AA25": {
+    "AllowedIpSet": {
       "Properties": {
         "Addresses": [
-          "192.0.2.0/24",
-          "198.51.100.0/24",
           "203.0.113.0/24",
+          "198.51.100.0/24",
         ],
         "IPAddressVersion": "IPV4",
-        "Name": "allow-ip-set",
+        "Name": "AllowedIpSet",
         "Scope": "REGIONAL",
       },
       "Type": "AWS::WAFv2::IPSet",
@@ -32,15 +31,15 @@ exports[`Web ACL Rule Regional scope testing Should match snapshot 1`] = `
         "Rules": [
           {
             "Action": {
-              "Block": {},
+              "Allow": {},
             },
-            "Name": "block-ip-rule",
+            "Name": "allow-ip-rule",
             "Priority": 1,
             "Statement": {
               "IPSetReferenceStatement": {
                 "Arn": {
                   "Fn::GetAtt": [
-                    "WAFIPRestrictRuleIPSet53B3AA25",
+                    "AllowedIpSet",
                     "Arn",
                   ],
                 },
@@ -48,12 +47,38 @@ exports[`Web ACL Rule Regional scope testing Should match snapshot 1`] = `
             },
             "VisibilityConfig": {
               "CloudWatchMetricsEnabled": true,
-              "MetricName": "BlockIPMetric",
+              "MetricName": "AllowIPMetric",
+              "SampledRequestsEnabled": true,
+            },
+          },
+          {
+            "Action": {
+              "Block": {},
+            },
+            "Name": "block-other-ip-rule",
+            "Priority": 2,
+            "Statement": {
+              "NotStatement": {
+                "Statement": {
+                  "IPSetReferenceStatement": {
+                    "Arn": {
+                      "Fn::GetAtt": [
+                        "AllowedIpSet",
+                        "Arn",
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "MetricName": "BlockOtherIpMetric",
               "SampledRequestsEnabled": true,
             },
           },
         ],
-        "Scope": "REGIONAL",
+        "Scope": "CLOUD_FRONT",
         "VisibilityConfig": {
           "CloudWatchMetricsEnabled": true,
           "MetricName": "WebAclMetric",
